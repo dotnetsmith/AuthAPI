@@ -17,6 +17,7 @@ namespace AuthAPI.Controllers
             _profileRepository = profileRepository;
         }
 
+        //This is an authentication method that takes in a profile object and checks if the username and password match the ones in the database
         [HttpPost]
         public async Task<ActionResult<Profile>?> Authenticate([FromBody] Profile profile)
         {
