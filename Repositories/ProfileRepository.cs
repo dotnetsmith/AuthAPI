@@ -1,7 +1,7 @@
 ﻿using Dapper;
-using AuthAPI.Models;
 using AuthAPI.Conext;
-using System;
+using AuthAPI.Entities;
+using AuthAPI.Models;
 
 namespace AuthAPI.Repositories
 {
@@ -23,14 +23,13 @@ namespace AuthAPI.Repositories
                 var profiles = await connection.QuerySingleOrDefaultAsync<Profile>(query, new
                 {
                     Username = Username
-
                 });
 
                 return profiles!;
             }
         }
 
-        public async Task Create(Profile profiles)
+        public async Task Create(User user)
         {
             var command = "INSERT INTO Profiles VALUES(@Username, @Password)";
 
@@ -38,8 +37,8 @@ namespace AuthAPI.Repositories
             {
                 await connection.ExecuteAsync(command, new
                 {
-                    Username = profiles.Username,
-                    Password = profiles.Password
+                    Username = user.Username,
+                    Password = user.Password
                 });
             }
         }
