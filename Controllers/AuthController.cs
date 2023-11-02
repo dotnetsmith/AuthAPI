@@ -1,8 +1,8 @@
-﻿using AuthAPI.Models;
+﻿using AuthAPI.Entities;
+using AuthAPI.Models;
 using AuthAPI.Repositories;
-using DadsWebAPI.Controllers;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AuthAPI.Controllers
 {
@@ -16,33 +16,62 @@ namespace AuthAPI.Controllers
         {
             _profileRepository = profileRepository;
         }
-
-        //This is an authentication method that takes in a profile object and checks if the username and password match the ones in the database
+        
         [HttpPost]
-        public async Task<ActionResult<Profile>?> Authenticate([FromBody] Profile profile)
-        {
-            var profiles = await _profileRepository.GetProfile(profile.Username);
+        public async Task<ActionResult<UserViewModel>?> Authenticate([FromBody] User user)
+        {            
+            var profile = await _profileRepository.GetProfile(user.Username);            
 
-            if (profile.Username != profiles.Username || profile.Password != profiles.Password)
+            if (profile == null)
             {
-                return default(Profile)!;
+                return Unauthorized("Account not found");
             }
 
-            return profiles;
+            if (!BCrypt.Net.BCrypt.Verify(user.Password, profile.PasswordHash))
+            {
+                return Unauthorized("Account not found");
+            }
+
+            var userViewModel = new UserViewModel 
+            {
+                Id = profile.Id,
+                Username = profile.Username,
+                AuthToken = GenerateToken(profile)            
+            };
+
+            return userViewModel;
+        }
+
+        private string GenerateToken(Profile profile)
+        {
+            return Guid.NewGuid().ToString();
         }
 
         [HttpPost]
         [Route("CreateProfile")]
-        public async Task<ActionResult> Create(Profile profiles)
+        public async Task<ActionResult> Create(User user)
         {
-            if (await IsUsernameUnique(profiles.Username) == false)
+            if (await IsUsernameUnique(user.Username) == false)
             {
                 return BadRequest("Username already exists");
             }
 
-            await _profileRepository.Create(profiles);
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(user.Password, 13);
 
-            return CreatedAtAction(nameof(Create), new { Username = profiles.Username }, profiles);
+            user.Password = hashedPassword;
+
+            await _profileRepository.Create(user);
+
+            var profile = await _profileRepository.GetProfile(user.Username);
+
+            var userViewModel = new UserViewModel
+            {
+                Id = profile.Id,
+                Username = profile.Username,
+                AuthToken = GenerateToken(profile)
+            };
+
+            return CreatedAtAction(nameof(Create), new { Username = userViewModel.Username }, userViewModel);
         }
 
         private async Task<bool> IsUsernameUnique(string Username)
