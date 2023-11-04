@@ -1,6 +1,6 @@
 ﻿namespace AuthAPI.Models
 {
-    public class UserViewModel
+    public class UserResponse
     {
         public int Id { get; set; }
         public string Username { get; set; }

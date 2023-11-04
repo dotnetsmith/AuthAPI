@@ -1,6 +1,10 @@
 using Dapper;
 using AuthAPI.Repositories;
 using AuthAPI.Conext;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using AuthAPI.OptionsSetup;
+using AuthAPI.Abastractions;
+using AuthAPI.Authentication;
 
 namespace AuthAPI
 {
@@ -27,8 +31,13 @@ namespace AuthAPI
 
             builder.Services.AddScoped<ProfileRepository>();
 
+            builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 
             // Add services to the container.
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+
+            builder.Services.ConfigureOptions<JwtOptionsSetup>();
+            builder.Services.ConfigureOptions<JwtBearerOptionsSetup>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -47,6 +56,8 @@ namespace AuthAPI
             app.UseHttpsRedirection();
 
             app.UseCors(MyAllowSpecificOrigins);
+
+            app.UseAuthentication();            
 
             app.UseAuthorization();
 
