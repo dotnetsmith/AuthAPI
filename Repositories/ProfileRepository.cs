@@ -2,7 +2,6 @@
 using AuthAPI.Conext;
 using AuthAPI.Entities;
 using AuthAPI.Models;
-using Microsoft.AspNetCore.Authorization;
 
 namespace AuthAPI.Repositories
 {

@@ -1,11 +1,8 @@
 ﻿using AuthAPI.Abastractions;
-using AuthAPI.Authentication;
-using AuthAPI.Entities;
 using AuthAPI.Models;
 using AuthAPI.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AuthAPI.Controllers
 {
@@ -23,7 +20,7 @@ namespace AuthAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<UserResponse>?> Authenticate([FromBody] UserRequest user)
+        public async Task<ActionResult<string>> Authenticate([FromBody] UserRequest user)
         {            
             var profile = await _profileRepository.GetProfile(user.Username); 
 
@@ -37,11 +34,11 @@ namespace AuthAPI.Controllers
                 return Unauthorized("Incorrect credentials");
             }
 
-            var userResponse = new UserResponse 
+            var userResponse = new UserResponse
             {
                 Id = profile.Id,
                 Username = profile.Username,
-                AuthToken = _jwtProvider.Generate(profile)            
+                AuthToken = _jwtProvider.Generate(profile)
             };
 
             Response.Headers.Add("Authorization", userResponse.AuthToken);
@@ -76,13 +73,21 @@ namespace AuthAPI.Controllers
             return CreatedAtAction(nameof(Create), new { Username = userResponse.Username }, userResponse);
         }
 
-        [Authorize]
+        //Get Identity of current user
+        [HttpGet("getMe"), Authorize] 
+        public ActionResult<string> GetMe()
+        {
+            var username = User?.Identity?.Name;
+            return Ok(username);
+        }
+
+        [Authorize (Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult<UserResponse>> GetProfileById(int id)
         {
             var profile = await _profileRepository.GetProfileById(id);
 
-            if (profile == null)
+            if (profile.Id == 0)
             {
                 return NotFound("Profile not found");
             }
@@ -95,7 +100,7 @@ namespace AuthAPI.Controllers
             };
 
             return userResponse;
-        }   
+        }
 
         private async Task<bool> IsUsernameUnique(string Username)
         {
