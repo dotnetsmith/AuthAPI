@@ -1,8 +1,8 @@
-﻿using AuthAPI.Entities;
+﻿using AuthAPI.Abastractions;
 using AuthAPI.Models;
 using AuthAPI.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AuthAPI.Controllers
 {
@@ -11,45 +11,44 @@ namespace AuthAPI.Controllers
     public class AuthController : ControllerBase
     {
         private readonly ProfileRepository _profileRepository;
+        private readonly IJwtProvider _jwtProvider;
 
-        public AuthController(ProfileRepository profileRepository)
+        public AuthController(ProfileRepository profileRepository, IJwtProvider jwtProvider)
         {
             _profileRepository = profileRepository;
+            _jwtProvider = jwtProvider;
         }
-        
+
         [HttpPost]
-        public async Task<ActionResult<UserViewModel>?> Authenticate([FromBody] User user)
+        public async Task<ActionResult<string>> Authenticate([FromBody] UserRequest user)
         {            
-            var profile = await _profileRepository.GetProfile(user.Username);            
+            var profile = await _profileRepository.GetProfile(user.Username); 
 
             if (profile == null)
             {
-                return Unauthorized("Account not found");
+                return NotFound("Account not found");
             }
 
             if (!BCrypt.Net.BCrypt.Verify(user.Password, profile.PasswordHash))
             {
-                return Unauthorized("Account not found");
+                return Unauthorized("Incorrect credentials");
             }
 
-            var userViewModel = new UserViewModel 
+            var userResponse = new UserResponse
             {
                 Id = profile.Id,
                 Username = profile.Username,
-                AuthToken = GenerateToken(profile)            
+                AuthToken = _jwtProvider.Generate(profile)
             };
 
-            return userViewModel;
-        }
+            Response.Headers.Add("Authorization", userResponse.AuthToken);
 
-        private string GenerateToken(Profile profile)
-        {
-            return Guid.NewGuid().ToString();
+            return Ok(userResponse);
         }
 
         [HttpPost]
         [Route("CreateProfile")]
-        public async Task<ActionResult> Create(User user)
+        public async Task<ActionResult> Create(UserRequest user)
         {
             if (await IsUsernameUnique(user.Username) == false)
             {
@@ -64,14 +63,43 @@ namespace AuthAPI.Controllers
 
             var profile = await _profileRepository.GetProfile(user.Username);
 
-            var userViewModel = new UserViewModel
+            var userResponse = new UserResponse
             {
                 Id = profile.Id,
                 Username = profile.Username,
-                AuthToken = GenerateToken(profile)
+                AuthToken = null!
             };
 
-            return CreatedAtAction(nameof(Create), new { Username = userViewModel.Username }, userViewModel);
+            return CreatedAtAction(nameof(Create), new { Username = userResponse.Username }, userResponse);
+        }
+
+        //Get Identity of current user
+        [HttpGet("getMe"), Authorize] 
+        public ActionResult<string> GetMe()
+        {
+            var username = User?.Identity?.Name;
+            return Ok(username);
+        }
+
+        [Authorize (Roles = "Admin")]
+        [HttpGet]
+        public async Task<ActionResult<UserResponse>> GetProfileById(int id)
+        {
+            var profile = await _profileRepository.GetProfileById(id);
+
+            if (profile.Id == 0)
+            {
+                return NotFound("Profile not found");
+            }
+
+            var userResponse = new UserResponse
+            {
+                Id = profile.Id,
+                Username = profile.Username,
+                AuthToken = null!
+            };
+
+            return userResponse;
         }
 
         private async Task<bool> IsUsernameUnique(string Username)

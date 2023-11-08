@@ -5,6 +5,8 @@ VisualStudioVersion = 17.7.34031.279
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthAPI", "AuthAPI.csproj", "{D8A1505D-410D-441F-AB26-686EAB2599A6}"
 EndProject
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "AuthDb", "..\AuthDb\AuthDb.sqlproj", "{5EBC8E22-FD89-4B04-BCF0-F0F6FAD52214}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,12 @@ Global
 		{D8A1505D-410D-441F-AB26-686EAB2599A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D8A1505D-410D-441F-AB26-686EAB2599A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D8A1505D-410D-441F-AB26-686EAB2599A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5EBC8E22-FD89-4B04-BCF0-F0F6FAD52214}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5EBC8E22-FD89-4B04-BCF0-F0F6FAD52214}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5EBC8E22-FD89-4B04-BCF0-F0F6FAD52214}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{5EBC8E22-FD89-4B04-BCF0-F0F6FAD52214}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5EBC8E22-FD89-4B04-BCF0-F0F6FAD52214}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5EBC8E22-FD89-4B04-BCF0-F0F6FAD52214}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
