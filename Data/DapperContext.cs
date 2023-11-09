@@ -12,7 +12,7 @@ namespace AuthAPI.Data
         public DapperContext(IConfiguration configuration)
         {
             _configuration = configuration;
-            _connectionString = _configuration.GetConnectionString("AuthConnection");
+            _connectionString = _configuration.GetConnectionString("AuthConnection")!;
         }
 
         public IDbConnection CreateConnection()
