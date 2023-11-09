@@ -1,0 +1,37 @@
+﻿Commit 1
+Create Presentation Layer
+1) Create Authentication Controller
+1) Register
+2) Login
+3) Create UserRequest Model
+	a) Add Data Annotations
+	b) Add Validation
+4) Create UserDto Model
+
+Commit 2
+Create Data Access Layer
+1) Create (or connect) to database
+2) Add Connection String to appsettings.json
+3) Create DbContext
+4) Create User Table
+	a) Id
+	b) Email
+	c) Username
+	d) PasswordHash
+5) Create User Entity
+6) Create User Repository
+	a) Install Dapper ORM
+
+Commit 3
+Create Business Logic Layer
+1) Add User Repository to User Service
+2) Create User Service
+3) Create Register Method
+4) Create Login Method
+
+Commit 4
+Connect Presentation Layer to Business Logic Layer
+1) Add User Service to Program.cs
+2) Add User Service to Authentication Controller
+3) Add Register Method to Authentication Controller
+4) Add Login Method to Authentication Controller

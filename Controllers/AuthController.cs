@@ -19,8 +19,8 @@ namespace AuthAPI.Controllers
             _jwtProvider = jwtProvider;
         }
 
-        [HttpPost]
-        public async Task<ActionResult<string>> Authenticate([FromBody] UserRequest user)
+        [HttpPost("Login")]
+        public async Task<ActionResult<string>> Login([FromBody] UserRequest user)
         {            
             var profile = await _profileRepository.GetProfile(user.Username); 
 
@@ -33,22 +33,17 @@ namespace AuthAPI.Controllers
             {
                 return Unauthorized("Incorrect credentials");
             }
+            
+            var token = _jwtProvider.Generate(profile);
 
-            var userResponse = new UserResponse
-            {
-                Id = profile.Id,
-                Username = profile.Username,
-                AuthToken = _jwtProvider.Generate(profile)
-            };
+            Response.Headers.Add("Authorization", token);
 
-            Response.Headers.Add("Authorization", userResponse.AuthToken);
-
-            return Ok(userResponse);
+            return Ok(token);
         }
 
         [HttpPost]
-        [Route("CreateProfile")]
-        public async Task<ActionResult> Create(UserRequest user)
+        [Route("Register")]
+        public async Task<ActionResult> Register(UserRequest user)
         {
             if (await IsUsernameUnique(user.Username) == false)
             {
@@ -63,14 +58,13 @@ namespace AuthAPI.Controllers
 
             var profile = await _profileRepository.GetProfile(user.Username);
 
-            var userResponse = new UserResponse
+            var userDto = new UserDto
             {
                 Id = profile.Id,
-                Username = profile.Username,
-                AuthToken = null!
+                Username = profile.Username
             };
 
-            return CreatedAtAction(nameof(Create), new { Username = userResponse.Username }, userResponse);
+            return CreatedAtAction(nameof(Register), new { Username = userDto.Username }, userDto);
         }
 
         //Get Identity of current user
@@ -83,7 +77,7 @@ namespace AuthAPI.Controllers
 
         [Authorize (Roles = "Admin")]
         [HttpGet]
-        public async Task<ActionResult<UserResponse>> GetProfileById(int id)
+        public async Task<ActionResult<UserDto>> GetProfileById(int id)
         {
             var profile = await _profileRepository.GetProfileById(id);
 
@@ -92,14 +86,13 @@ namespace AuthAPI.Controllers
                 return NotFound("Profile not found");
             }
 
-            var userResponse = new UserResponse
+            var userDto = new UserDto
             {
                 Id = profile.Id,
-                Username = profile.Username,
-                AuthToken = null!
+                Username = profile.Username
             };
 
-            return userResponse;
+            return userDto;
         }
 
         private async Task<bool> IsUsernameUnique(string Username)
