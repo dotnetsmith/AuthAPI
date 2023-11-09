@@ -2,7 +2,7 @@
 
 namespace AuthAPI.Models
 {
-    public class UserRequest
+    public sealed class UserRequest
     {
         [Required]
         public string Username { get; set; } = string.Empty;

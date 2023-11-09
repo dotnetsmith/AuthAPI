@@ -1,6 +1,6 @@
 ﻿namespace AuthAPI.Models
 {
-    public record UserDto
+    public sealed record UserDto
     {
         public int Id { get; set; }
         public string Username { get; set; }

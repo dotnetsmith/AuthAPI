@@ -60,13 +60,10 @@ namespace AuthAPI.Controllers
 
             var userDto = profile.ToDto();
 
-            //var userDto = new UserDto
-            //{
-            //    Id = profile.Id,
-            //    Username = profile.Username
-            //};
-
-            return CreatedAtAction(nameof(Register), new { Username = userDto.Username }, userDto);
+            return CreatedAtAction(
+                nameof(Register), 
+                new { Username = userDto.Username }, 
+                userDto);
         }
 
         [Authorize(Roles = "Admin")]
@@ -80,16 +77,11 @@ namespace AuthAPI.Controllers
                 return NotFound("Profile not found");
             }
 
-            var userDto = new UserDto
-            {
-                Id = profile.Id,
-                Username = profile.Username
-            };
+            var userDto = profile.ToDto();
 
             return userDto;
         }
 
-        //Get Identity of current user
         [HttpGet("getMe"), Authorize] 
         public ActionResult<string> GetMe()
         {
