@@ -1,6 +1,6 @@
-﻿using AuthAPI.Entities;
+﻿using AuthAPI.Data;
 
-namespace AuthAPI.Abastractions
+namespace AuthAPI.Authentication
 {
     public interface IJwtProvider
     {

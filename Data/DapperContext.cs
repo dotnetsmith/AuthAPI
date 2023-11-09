@@ -2,7 +2,7 @@
 using System.Data;
 using System.Data.SqlClient;
 
-namespace AuthAPI.Conext
+namespace AuthAPI.Data
 {
     public class DapperContext
     {

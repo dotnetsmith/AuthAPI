@@ -1,6 +1,6 @@
-﻿using AuthAPI.Abastractions;
+﻿using AuthAPI.Authentication;
+using AuthAPI.Data;
 using AuthAPI.Models;
-using AuthAPI.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -58,24 +58,18 @@ namespace AuthAPI.Controllers
 
             var profile = await _profileRepository.GetProfile(user.Username);
 
-            var userDto = new UserDto
-            {
-                Id = profile.Id,
-                Username = profile.Username
-            };
+            var userDto = profile.ToDto();
+
+            //var userDto = new UserDto
+            //{
+            //    Id = profile.Id,
+            //    Username = profile.Username
+            //};
 
             return CreatedAtAction(nameof(Register), new { Username = userDto.Username }, userDto);
         }
 
-        //Get Identity of current user
-        [HttpGet("getMe"), Authorize] 
-        public ActionResult<string> GetMe()
-        {
-            var username = User?.Identity?.Name;
-            return Ok(username);
-        }
-
-        [Authorize (Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult<UserDto>> GetProfileById(int id)
         {
@@ -93,6 +87,14 @@ namespace AuthAPI.Controllers
             };
 
             return userDto;
+        }
+
+        //Get Identity of current user
+        [HttpGet("getMe"), Authorize] 
+        public ActionResult<string> GetMe()
+        {
+            var username = User?.Identity?.Name;
+            return Ok(username);
         }
 
         private async Task<bool> IsUsernameUnique(string Username)

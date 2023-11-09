@@ -1,9 +1,7 @@
 ﻿using Dapper;
-using AuthAPI.Conext;
-using AuthAPI.Entities;
 using AuthAPI.Models;
 
-namespace AuthAPI.Repositories
+namespace AuthAPI.Data
 {
     public class ProfileRepository
     {
@@ -20,10 +18,12 @@ namespace AuthAPI.Repositories
 
             using (var connection = _context.CreateConnection())
             {
-                var profile = await connection.QuerySingleOrDefaultAsync<Profile>(query, new
-                {
-                    Username = Username
-                });
+                var profile = await connection
+                    .QuerySingleOrDefaultAsync<Profile>(query, new
+                    {
+                        Username = Username
+                    }   
+                );
 
                 return profile!;
             }
@@ -35,11 +35,13 @@ namespace AuthAPI.Repositories
 
             using (var connection = _context.CreateConnection())
             {
-                await connection.ExecuteAsync(command, new
-                {
-                    Username = user.Username,
-                    Password = user.Password
-                });
+                await connection.
+                    ExecuteAsync(command, new
+                    {
+                        Username = user.Username,
+                        Password = user.Password
+                    }
+                );
             }
         }
                 
