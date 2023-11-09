@@ -3,7 +3,7 @@ using AuthAPI.Models;
 
 namespace AuthAPI.Data
 {
-    public class ProfileRepository
+    public class ProfileRepository : IProfileRepository
     {
         private readonly DapperContext _context;
 
@@ -22,7 +22,7 @@ namespace AuthAPI.Data
                     .QuerySingleOrDefaultAsync<Profile>(query, new
                     {
                         Username = Username
-                    }   
+                    }
                 );
 
                 return profile!;
@@ -44,7 +44,22 @@ namespace AuthAPI.Data
                 );
             }
         }
-                
+
+        public async Task UpdateRefeshToken(string RefreshToken, DateTime RefreshTokenExpiration, int Id)
+        {
+            var command = "UPDATE Profiles SET RefreshToken = @RefreshToken, RefreshTokenExpiration = @RefreshTokenExpiration WHERE Id = @Id";
+
+            using (var connection = _context.CreateConnection())
+            {
+                await connection.ExecuteAsync(command, new
+                {
+                    RefreshToken = RefreshToken,
+                    RefreshTokenExpiration = RefreshTokenExpiration,
+                    Id = Id
+                });
+            }
+        }
+
         public async Task<Profile> GetProfileById(int id)
         {
             var query = "SELECT * FROM Profiles WHERE Id = @id";
@@ -54,6 +69,21 @@ namespace AuthAPI.Data
                 var profile = await connection.QuerySingleOrDefaultAsync<Profile>(query, new
                 {
                     Id = @id
+                });
+
+                return profile!;
+            }
+        }
+
+        public async Task<Profile> GetProfileByRefreshToken(string refreshToken)
+        {
+            var query = "SELECT * FROM Profiles WHERE RefreshToken = @refreshToken";
+
+            using (var connection = _context.CreateConnection())
+            {
+                var profile = await connection.QuerySingleOrDefaultAsync<Profile>(query, new
+                {
+                    RefreshToken = @refreshToken
                 });
 
                 return profile!;

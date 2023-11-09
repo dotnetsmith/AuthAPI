@@ -3,6 +3,7 @@ using AuthAPI.Data;
 using AuthAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace AuthAPI.Controllers
 {
@@ -10,16 +11,24 @@ namespace AuthAPI.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly ProfileRepository _profileRepository;
+        private readonly IProfileRepository _profileRepository;
         private readonly IJwtProvider _jwtProvider;
+        private readonly IRefreshTokenProvider _refreshTokenProvider;
 
-        public AuthController(ProfileRepository profileRepository, IJwtProvider jwtProvider)
+        public AuthController(
+            IProfileRepository profileRepository, 
+            IJwtProvider jwtProvider,
+            IRefreshTokenProvider refreshTokenProvider)
         {
             _profileRepository = profileRepository;
             _jwtProvider = jwtProvider;
+            _refreshTokenProvider = refreshTokenProvider;
         }
 
-        [HttpPost("Login")]
+        [HttpPost("login")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<string>> Login([FromBody] UserRequest user)
         {            
             var profile = await _profileRepository.GetProfile(user.Username); 
@@ -38,11 +47,22 @@ namespace AuthAPI.Controllers
 
             Response.Headers.Add("Authorization", token);
 
+            var (refreshToken, refreshTokenExpiration) = _refreshTokenProvider.Generate();
+
+            Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = refreshTokenExpiration
+            });
+
+            await _profileRepository.UpdateRefeshToken(refreshToken!, refreshTokenExpiration, profile.Id);
+
             return Ok(token);
         }
 
-        [HttpPost]
-        [Route("Register")]
+        [HttpPost("register")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult> Register(UserRequest user)
         {
             if (await IsUsernameUnique(user.Username) == false)
@@ -66,13 +86,57 @@ namespace AuthAPI.Controllers
                 userDto);
         }
 
-        [Authorize(Roles = "Admin")]
+        [HttpGet("refresh")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> Refresh()
+        {
+            var refreshToken = Request.Cookies["refreshToken"];
+
+            if (refreshToken == null)
+            {
+                return Unauthorized("Refresh token not found");
+            }
+
+            var profile = await _profileRepository.GetProfileByRefreshToken(refreshToken);
+
+            if (profile == null)
+            {
+                return Unauthorized("Refresh token not found");
+            }
+
+            if (profile.RefreshTokenExpiration < DateTime.UtcNow)
+            {
+                return Unauthorized("Refresh token expired");
+            }
+
+            var token = _jwtProvider.Generate(profile);
+
+            Response.Headers.Add("Authorization", token);
+
+            var (newRefreshToken, newRefreshTokenExpiration) = _refreshTokenProvider.Generate();
+
+            Response.Cookies.Append("refreshToken", newRefreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = newRefreshTokenExpiration
+            });
+
+            await _profileRepository.UpdateRefeshToken(newRefreshToken!, newRefreshTokenExpiration, profile.Id);
+
+            return Ok("Token refreshed");
+        }   
+                
         [HttpGet]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]        
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<UserDto>> GetProfileById(int id)
         {
             var profile = await _profileRepository.GetProfileById(id);
 
-            if (profile.Id == 0)
+            if (profile == null)
             {
                 return NotFound("Profile not found");
             }

@@ -31,9 +31,8 @@ namespace AuthAPI.Data
             });
 
             builder.Services.AddSingleton<DapperContext>();
-
-            builder.Services.AddScoped<ProfileRepository>();
-
+            builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
+            builder.Services.AddScoped<IRefreshTokenProvider, RefreshTokenProvider>();
             builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 
             // Add services to the container.
