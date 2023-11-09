@@ -1,14 +1,11 @@
-using AuthAPI.Repositories;
-using AuthAPI.Conext;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using AuthAPI.Abastractions;
 using AuthAPI.Authentication;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using Swashbuckle.AspNetCore.Filters;
 
-namespace AuthAPI
+namespace AuthAPI.Data
 {
     public class Program
     {
