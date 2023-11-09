@@ -12,17 +12,17 @@ namespace AuthAPI.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IProfileRepository _profileRepository;
-        private readonly IJwtProvider _jwtProvider;
-        private readonly IRefreshTokenProvider _refreshTokenProvider;
+        private readonly IJwtProvider _jwtHeaderProvider;
+        private readonly IRefreshTokenCookieProvider _refreshTokenSessionProvider;
 
         public AuthController(
             IProfileRepository profileRepository, 
-            IJwtProvider jwtProvider,
-            IRefreshTokenProvider refreshTokenProvider)
+            IJwtProvider jwtHeaderProvider,
+            IRefreshTokenCookieProvider refreshTokenSessionProvider)
         {
             _profileRepository = profileRepository;
-            _jwtProvider = jwtProvider;
-            _refreshTokenProvider = refreshTokenProvider;
+            _jwtHeaderProvider = jwtHeaderProvider;
+            _refreshTokenSessionProvider = refreshTokenSessionProvider;
         }
 
         [HttpPost("login")]
@@ -43,19 +43,11 @@ namespace AuthAPI.Controllers
                 return Unauthorized("Incorrect credentials");
             }
             
-            var token = _jwtProvider.Generate(profile);
-
-            Response.Headers.Add("Authorization", token);
-
-            var (refreshToken, refreshTokenExpiration) = _refreshTokenProvider.Generate();
-
-            Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
-            {
-                HttpOnly = true,
-                Expires = refreshTokenExpiration
-            });
+            var (refreshToken, refreshTokenExpiration) = _refreshTokenSessionProvider.Generate(HttpContext);
 
             await _profileRepository.UpdateRefeshToken(refreshToken!, refreshTokenExpiration, profile.Id);
+
+            var token = _jwtHeaderProvider.Generate(profile, HttpContext);
 
             return Ok(token);
         }
@@ -111,19 +103,11 @@ namespace AuthAPI.Controllers
                 return Unauthorized("Refresh token expired");
             }
 
-            var token = _jwtProvider.Generate(profile);
-
-            Response.Headers.Add("Authorization", token);
-
-            var (newRefreshToken, newRefreshTokenExpiration) = _refreshTokenProvider.Generate();
-
-            Response.Cookies.Append("refreshToken", newRefreshToken, new CookieOptions
-            {
-                HttpOnly = true,
-                Expires = newRefreshTokenExpiration
-            });
+            var (newRefreshToken, newRefreshTokenExpiration) = _refreshTokenSessionProvider.Generate(HttpContext);            
 
             await _profileRepository.UpdateRefeshToken(newRefreshToken!, newRefreshTokenExpiration, profile.Id);
+
+            var token = _jwtHeaderProvider.Generate(profile, HttpContext);
 
             return Ok("Token refreshed");
         }   

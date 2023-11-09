@@ -15,7 +15,7 @@ namespace AuthAPI.Authentication
             _config = config;
         }
 
-        public string Generate(Profile profile)
+        public string Generate(Profile profile, HttpContext context)
         {
             List<Claim> claims = new List<Claim>
             {
@@ -37,6 +37,8 @@ namespace AuthAPI.Authentication
                 signingCredentials); 
 
             string jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            context.Response.Headers.Add("Authorization", jwt);
 
             return jwt;
         }
