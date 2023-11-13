@@ -32,11 +32,12 @@ namespace AuthAPI.Data
 
             builder.Services.AddSingleton<DapperContext>();
             builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
-            builder.Services.AddScoped<IRefreshTokenProvider, RefreshTokenProvider>();
+            builder.Services.AddScoped<IRefreshTokenCookieProvider, RefreshTokenCookieProvider>();
             builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 
             // Add services to the container.
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
             {
                 options.TokenValidationParameters = new()
                 {

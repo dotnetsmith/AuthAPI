@@ -4,6 +4,6 @@ namespace AuthAPI.Authentication
 {
     public interface IJwtProvider
     {
-        string Generate(Profile profile);
+        string Generate(Profile profile, HttpContext context);
     }
 }
