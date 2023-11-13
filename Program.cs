@@ -36,7 +36,8 @@ namespace AuthAPI.Data
             builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 
             // Add services to the container.
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
             {
                 options.TokenValidationParameters = new()
                 {
