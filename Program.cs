@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using Swashbuckle.AspNetCore.Filters;
+using AuthAPI.Health;
 
 namespace AuthAPI.Data
 {
@@ -51,6 +52,9 @@ namespace AuthAPI.Data
                 };
             });
 
+            builder.Services.AddHealthChecks()
+                .AddCheck<DatabaseHealthCheck>("Database");
+
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -79,6 +83,8 @@ namespace AuthAPI.Data
             }
 
             app.UseHttpsRedirection();
+
+            app.MapHealthChecks("/_health");
 
             app.UseCors(MyAllowSpecificOrigins);
 

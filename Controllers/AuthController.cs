@@ -103,7 +103,7 @@ namespace AuthAPI.Controllers
                 return Unauthorized("Refresh token expired");
             }
 
-            var (newRefreshToken, newRefreshTokenExpiration) = _refreshTokenSessionProvider.Generate(HttpContext);            
+            var (newRefreshToken, newRefreshTokenExpiration) = _refreshTokenSessionProvider.Generate(HttpContext);
 
             await _profileRepository.UpdateRefeshToken(newRefreshToken!, newRefreshTokenExpiration, profile.Id);
 

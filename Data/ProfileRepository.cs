@@ -31,7 +31,7 @@ namespace AuthAPI.Data
 
         public async Task Create(UserRequest user)
         {
-            var command = "INSERT INTO Profiles VALUES(@Username, @Password)";
+            var command = "INSERT INTO Profiles VALUES(@Username, @PasswordHash, @RefreshToken, @RefreshTokenExpiration)";
 
             using (var connection = _context.CreateConnection())
             {
@@ -39,7 +39,9 @@ namespace AuthAPI.Data
                     ExecuteAsync(command, new
                     {
                         Username = user.Username,
-                        Password = user.Password
+                        PasswordHash = user.Password,
+                        RefreshToken = (string)null,
+                        RefreshTokenExpiration = (DateTime?)null
                     }
                 );
             }
