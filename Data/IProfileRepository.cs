@@ -8,6 +8,7 @@ namespace AuthAPI.Data
         Task<Profile> GetProfile(string Username);
         Task<Profile> GetProfileById(int id);
         Task<Profile> GetProfileByRefreshToken(string refreshToken);
-        Task UpdateRefeshToken(string RefreshToken, DateTime RefreshTokenExpiration, int Id);
+        Task UpdatePassword(PasswordReset passwordReset);
+        Task UpdateRefeshToken(string RefreshToken, DateTime? RefreshTokenExpiration, int Id);
     }
 }

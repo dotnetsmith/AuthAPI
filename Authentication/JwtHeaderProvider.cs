@@ -6,11 +6,11 @@ using System.Text;
 
 namespace AuthAPI.Authentication
 {
-    public sealed class JwtProvider : IJwtProvider
+    public sealed class JwtHeaderProvider : IJwtHeaderProvider
     {
         private readonly IConfiguration _config;
 
-        public JwtProvider(IConfiguration config)
+        public JwtHeaderProvider(IConfiguration config)
         {
             _config = config;
         }

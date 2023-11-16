@@ -19,5 +19,26 @@ namespace AuthAPI.Data
         {
             return new SqlConnection(_connectionString);
         }
+
+        public async Task Init()
+        {
+            using var connection = CreateConnection();
+            await _initUsers();
+
+            async Task _initUsers()
+            {
+                var sql = """
+                CREATE TABLE IF NOT EXISTS 
+                Profiles (
+                        Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        Username varchar(50) not null,
+                        PasswordHash varchar(200) not null,
+                        RefreshToken varchar(40) not null,
+                        RefreshTokenExpiration datetime not null
+                    );
+                """;
+                await connection.ExecuteAsync(sql);
+            }
+        }
     }
 }
