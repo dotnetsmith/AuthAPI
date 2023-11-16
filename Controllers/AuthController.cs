@@ -12,12 +12,12 @@ namespace AuthAPI.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IProfileRepository _profileRepository;
-        private readonly IJwtProvider _jwtHeaderProvider;
+        private readonly IJwtHeaderProvider _jwtHeaderProvider;
         private readonly IRefreshTokenCookieProvider _refreshTokenSessionProvider;
 
         public AuthController(
             IProfileRepository profileRepository, 
-            IJwtProvider jwtHeaderProvider,
+            IJwtHeaderProvider jwtHeaderProvider,
             IRefreshTokenCookieProvider refreshTokenSessionProvider)
         {
             _profileRepository = profileRepository;
@@ -110,7 +110,62 @@ namespace AuthAPI.Controllers
             var token = _jwtHeaderProvider.Generate(profile, HttpContext);
 
             return Ok("Token refreshed");
-        }   
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryTokenAttribute]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult> Logout()
+        {
+            var refreshToken = Request.Cookies["refreshToken"];
+
+            if (refreshToken == null)
+            {
+                return Unauthorized("Refresh token not found");
+            }
+
+            var profile = await _profileRepository.GetProfileByRefreshToken(refreshToken);
+
+            if (profile == null)
+            {
+                return Unauthorized("Refresh token not found");
+            }
+
+            await _profileRepository.UpdateRefeshToken(null!, null!, profile.Id);
+
+            return NoContent();
+        }
+
+        [HttpPut("updatePassword")]
+        [Authorize]
+        [ValidateAntiForgeryTokenAttribute]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> UpdatePassword(PasswordReset passwordReset)
+        {
+            var profile = await _profileRepository.GetProfile(passwordReset.Username);
+
+            if (profile == null)
+            {
+                return NotFound("Profile not found");
+            }
+
+            if (!BCrypt.Net.BCrypt.Verify(passwordReset.OldPassword, profile.PasswordHash))
+            {
+                return Unauthorized("Incorrect credentials");
+            }
+
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(passwordReset.NewPassword, 13);
+
+            passwordReset.NewPassword = hashedPassword;
+
+            await _profileRepository.UpdatePassword(passwordReset);
+
+            return NoContent();
+        }
                 
         [HttpGet]
         [Authorize(Roles = "Admin")]

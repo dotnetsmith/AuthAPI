@@ -34,7 +34,7 @@ namespace AuthAPI.Data
             builder.Services.AddSingleton<DapperContext>();
             builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
             builder.Services.AddScoped<IRefreshTokenCookieProvider, RefreshTokenCookieProvider>();
-            builder.Services.AddScoped<IJwtProvider, JwtProvider>();
+            builder.Services.AddScoped<IJwtHeaderProvider, JwtHeaderProvider>();
 
             // Add services to the container.
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -81,6 +81,9 @@ namespace AuthAPI.Data
                 app.UseSwaggerUI();
                 
             }
+
+            //var context = app.Services.GetRequiredService<DapperContext>();
+            //context.Init();
 
             app.UseHttpsRedirection();
 
